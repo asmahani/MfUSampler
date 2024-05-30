@@ -3,4 +3,6 @@ Multivariate-from-Univariate (MfU) Markov Chain Monte Carlo Sampler provides mac
 performs a full cycle of univariate sampling steps, one coordinate at a time. In each step, the latest sample values obtained for other coordinates are used to form the conditional distributions. The concept is an extension of Gibbs sampling where each step involves,
 not an independent sample from the conditional distribution, but a Markov transition for which the conditional distribution is invariant. The software relies on proportionality of conditional distributions to the joint distribution to implement a thin wrapper for producing conditionals. See also:
 - [`MfUSampler` R package on CRAN](https://cran.r-project.org/web/packages/MfUSampler/index.html)
-- [Paper published in *Journal of Statistical Software* describing the `MfUSampler` methodology as well as performance improvement strategies](https://www.jstatsoft.org/article/view/v078c01)
+- [Paper published in *Journal of Statistical Software* describing the `MfUSampler` methodology as well as performance improvement strategies](https://www.jstatsoft.org/article/view/v078c01) (1)
+
+1. Mahani, Alireza S., and Mansour TA Sharabiani. "Multivariate-From-Univariate MCMC Sampler: The R Package MfUSampler." Journal of Statistical Software 78 (2017): 1-22.
