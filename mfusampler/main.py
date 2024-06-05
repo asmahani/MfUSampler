@@ -1,9 +1,7 @@
 import numpy as np
 
-def MfU_fEval():
-    pass
-
 def uni_slice(x0, f, w=1, m=np.inf, lower=-np.inf, upper=np.inf, gx0=None, **kwargs):
+    #print([w, m, lower, upper])
     """
     Perform univariate slice sampling.
     
