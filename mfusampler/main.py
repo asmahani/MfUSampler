@@ -1,6 +1,9 @@
 import numpy as np
 
-def uni_slice(x0, f, w=1, m=np.inf, lower=-np.inf, upper=np.inf, gx0=None, *args):
+def MfU_fEval():
+    pass
+
+def uni_slice(x0, f, w=1, m=np.inf, lower=-np.inf, upper=np.inf, gx0=None, **kwargs):
     """
     Perform univariate slice sampling.
     
@@ -20,8 +23,8 @@ def uni_slice(x0, f, w=1, m=np.inf, lower=-np.inf, upper=np.inf, gx0=None, *args
         Upper bound on support of the distribution (default is +infinity).
     gx0 : float, optional
         Value of f(x0), if known (default is None).
-    *args : additional arguments
-        Additional arguments to pass to the log density function f.
+    *kwargs : additional (keyword) arguments
+        Additional (keyword) arguments to pass to the log density function f.
     
     Returns
     -------
@@ -31,7 +34,7 @@ def uni_slice(x0, f, w=1, m=np.inf, lower=-np.inf, upper=np.inf, gx0=None, *args
     
     # Define a wrapper for the log density function
     def g(x):
-        return f(x, *args)
+        return f(x, **kwargs)
     
     # Check the validity of the arguments
     if not (isinstance(x0, (int, float)) and isinstance(w, (int, float)) and w > 0 and
