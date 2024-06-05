@@ -1,5 +1,55 @@
 import numpy as np
 
+def _MfU_fEval(xk, k, x, fMulti, **kwargs):
+    x[k] = xk
+    return fMulti(x, **kwargs)
+
+def _scalar_or_length_n(x, n):
+    if np.isscalar(x):
+        return np.repeat(x, n)
+    elif len(x) == n:
+        return x
+    else:
+        raise ValueError("Input must be of length 1 or 'n'")
+
+def MfU_control(
+    n
+    , slice_w = 1.0, slice_m = np.inf
+    , slice_lower = -np.inf, slice_upper = +np.inf
+):
+    slice_w = _scalar_or_length_n(slice_w, n)
+    slice_m = _scalar_or_length_n(slice_m, n)
+    slice_lower = _scalar_or_length_n(slice_lower, n)
+    slice_upper = _scalar_or_length_n(slice_upper, n)
+    ret = {'slice': {'w': slice_w, 'm': slice_m, 'lower': slice_lower, 'upper': slice_upper}}
+    return ret
+
+def MfU_sample(x, f, uni_sampler = 'slice', uni_sampler_control = None, **kwargs):
+    N = len(x)
+    if uni_sampler_control is None:
+        uni_sampler_control = MfU_control(N)
+    control_slice = uni_sampler_control['slice']
+    for n in range(N):
+        if uni_sampler == 'slice':
+            x[n] = uni_slice(
+                x[n], f = _MfU_fEval, k = n, x = x, fMulti = f
+                , w = control_slice['w'][n]
+                , m = control_slice['m'][n]
+                , lower = control_slice['lower'][n]
+                , upper = control_slice['upper'][n]
+                , **kwargs
+            )
+        else:
+            raise ValueError('Invalid univariate sampler')
+    return x
+
+def MfU_sample_run(x, f, uni_sampler = 'slice', uni_sampler_control = None, nsmp = 10, **kwargs):
+    xall = np.empty([nsmp, len(x)])
+    for n in range(nsmp):
+        x = MfU_sample(x, f, uni_sampler, uni_sampler_control, **kwargs)
+        xall[n, :] = x
+    return xall
+
 def uni_slice(x0, f, w=1, m=np.inf, lower=-np.inf, upper=np.inf, gx0=None, **kwargs):
     #print([w, m, lower, upper])
     """
