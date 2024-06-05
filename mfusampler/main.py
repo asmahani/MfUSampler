@@ -17,6 +17,28 @@ def MfU_control(
     , slice_w = 1.0, slice_m = np.inf
     , slice_lower = -np.inf, slice_upper = +np.inf
 ):
+    """
+    Generate control parameters for univariate samplers (currently, slice sampler only).
+    Any parameter that is provided as a scalar will be replicated for all dimensions.
+    
+    Parameters
+    ----------
+    n : int
+        Dimensionality of random variable vector whose density we wish to draw MCMC samples from.
+    slice_w : float or array-like, optional
+        The size of the steps for creating intervals in the slice sampler (default is 1.0).
+    slice_m : float or array-like, optional
+        The limit on the number of steps for expanding intervals in the slice sampler (default is infinity).
+    slice_lower : float or array-like, optional
+        The lower bounds for the random-variable vector, to be used in the slice sampler (default is -infinity).
+    slice_upper : float or array-like, optional
+        The upper bounds for the random variable vector, to be used in the slice sampler (default is +infinity).
+    
+    Returns
+    -------
+    dict
+        A dictionary containing the control parameters for the univariate samplers (currently, slice sampler only).
+    """
     slice_w = _scalar_or_length_n(slice_w, n)
     slice_m = _scalar_or_length_n(slice_m, n)
     slice_lower = _scalar_or_length_n(slice_lower, n)
@@ -25,13 +47,39 @@ def MfU_control(
     return ret
 
 def MfU_sample(x, f, uni_sampler = 'slice', uni_sampler_control = None, **kwargs):
+    """
+    Perform sampling of a (log-)density using a specified univariate sampler.
+
+    Parameters
+    ----------
+    x : array-like
+        Initial points for sampling.
+    f : callable
+        Function returning the log of the probability density (plus constant) for the target distribution.
+    uni_sampler : str, optional
+        The type of univariate sampler to use (default is 'slice').
+    uni_sampler_control : dict, optional
+        Control parameters for the univariate sampler. If None, default control parameters will be used.
+    **kwargs : additional keyword arguments
+        Additional arguments to pass to the log density function f.
+
+    Returns
+    -------
+    array-like
+        A single MCMC sample (of same length as x) for the target distribution.
+    
+    Raises
+    ------
+    ValueError
+        If an invalid univariate sampler is specified.
+    """
     N = len(x)
     if uni_sampler_control is None:
         uni_sampler_control = MfU_control(N)
     control_slice = uni_sampler_control['slice']
     for n in range(N):
         if uni_sampler == 'slice':
-            x[n] = uni_slice(
+            x[n] = _uni_slice(
                 x[n], f = _MfU_fEval, k = n, x = x, fMulti = f
                 , w = control_slice['w'][n]
                 , m = control_slice['m'][n]
@@ -44,13 +92,36 @@ def MfU_sample(x, f, uni_sampler = 'slice', uni_sampler_control = None, **kwargs
     return x
 
 def MfU_sample_run(x, f, uni_sampler = 'slice', uni_sampler_control = None, nsmp = 10, **kwargs):
+    """
+    Generating multiple MCMC samples for a (log-)density using a specified univariate sampler.
+
+    Parameters
+    ----------
+    x : array-like
+        Initial points for sampling.
+    f : callable
+        Function returning the log of the probability density (plus constant) for the target distribution.
+    uni_sampler : str, optional
+        The type of univariate sampler to use (default is 'slice').
+    uni_sampler_control : dict, optional
+        Control parameters for the univariate sampler. If None, default control parameters will be used.
+    nsmp : int, optional
+        The number of samples to draw (default is 10).
+    **kwargs : additional keyword arguments
+        Additional arguments to pass to the log density function f.
+
+    Returns
+    -------
+    np.ndarray
+        Array of shape (nsmp, len(x)) containing the sampled points.
+    """
     xall = np.empty([nsmp, len(x)])
     for n in range(nsmp):
         x = MfU_sample(x, f, uni_sampler, uni_sampler_control, **kwargs)
         xall[n, :] = x
     return xall
 
-def uni_slice(x0, f, w=1, m=np.inf, lower=-np.inf, upper=np.inf, gx0=None, **kwargs):
+def _uni_slice(x0, f, w=1, m=np.inf, lower=-np.inf, upper=np.inf, gx0=None, **kwargs):
     #print([w, m, lower, upper])
     """
     Perform univariate slice sampling.
